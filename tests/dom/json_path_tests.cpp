@@ -384,8 +384,8 @@ bool json_path_with_wildcard() {
 
   std::vector<std::string> expected = {"naist street", "Nara", "630-0192"};
   for (int i = 0; i < 3; i++) {
-      ASSERT_SUCCESS(values[i].get(string_value));
-      ASSERT_EQUAL(string_value, expected[i]);
+    ASSERT_SUCCESS(values[i].get(string_value));
+    ASSERT_EQUAL(string_value, expected[i]);
   }
 
   // $.*.streetAddress
@@ -394,6 +394,24 @@ bool json_path_with_wildcard() {
 
   ASSERT_SUCCESS(values[0].get(string_value));
   ASSERT_EQUAL(string_value, "naist street");
+
+  // $.phoneNumbers[*].numbers[*]
+  result = parsed_json.at_path_with_wildcard("$.phoneNumbers[*].numbers[*]");
+  values = result.value();
+
+  std::vector<std::string> expected_numbers = {
+    "0123-4567-8888",
+    "0123-4567-8788",
+    "0123-4567-8887",
+    "0123-4567-8910",
+    "0123-4267-8910",
+    "0103-4567-8910"
+  };
+
+  for (int i = 0; i < 6; i++) {
+    ASSERT_SUCCESS(values[i].get(string_value));
+    ASSERT_EQUAL(string_value, expected_numbers[i]);
+  }
 
   TEST_SUCCEED();
 }
@@ -446,7 +464,7 @@ int main() {
       run_failure_test(TEST_JSON, ".~1abc", NO_SUCH_FIELD) &&
       run_failure_test(TEST_JSON, "./~01abc.01", INVALID_JSON_POINTER) &&
       run_failure_test(TEST_JSON, "./~01abc.", INVALID_JSON_POINTER) &&
-      run_failure_test(TEST_JSON, "./~01abc.-", INDEX_OUT_OF_BOUNDS)&& json_path_with_wildcard())   {
+      run_failure_test(TEST_JSON, "./~01abc.-", INDEX_OUT_OF_BOUNDS)) {
     std::cout << "Success!" << std::endl;
     return 0;
   } else {
