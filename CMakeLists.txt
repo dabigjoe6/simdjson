@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
+
 project(
     simdjson
     # The version number is modified by tools/release.py
@@ -256,6 +257,10 @@ endif()
 
 # ---- Developer mode extras ----
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_BUILD_TYPE Debug)
+
 if(is_top_project AND NOT SIMDJSON_DEVELOPER_MODE)
   message(STATUS "Building only the library. Advanced users and contributors may want to turn SIMDJSON_DEVELOPER_MODE to ON, e.g., via -D SIMDJSON_DEVELOPER_MODE=ON.")
 elseif(SIMDJSON_DEVELOPER_MODE AND NOT is_top_project)
@@ -265,6 +270,8 @@ endif()
 if(NOT SIMDJSON_DEVELOPER_MODE)
   return()
 endif()
+
+set(CMAKE_OSX_SYSROOT, /Library/Developer/CommandLineTools/SDKs/MacOSX15.5.sdk)
 
 simdjson_apply_props(simdjson-internal-flags)
 
@@ -283,6 +290,7 @@ add_custom_target(
 
 # Setup tests
 enable_testing()
+
 # So we can build just tests with "make all_tests"
 add_custom_target(all_tests)
 
@@ -305,6 +313,7 @@ endif()
 # Compile tools / tests / benchmarks
 #
 add_subdirectory(tests)
+
 add_subdirectory(examples)
 if(CMAKE_SIZEOF_VOID_P EQUAL 8) # we only include the benchmarks on 64-bit systems.
   add_subdirectory(benchmark)

@@ -29,8 +29,15 @@ simdjson::padded_string json_string = R"(
           "0123-4267-8910",
           "0103-4567-8910"
         ]
+      },
+      { },
+      {
+        "type": "office",
+        "numbers": [ ]
       }
-    ]
+    ],
+    "empty_object": { },
+    "empty_array": [ ]
   })"_padded;
 
 simdjson::dom::parser parser{};
@@ -121,6 +128,51 @@ void wildcard_firstName() {
   print_result(values);
 }
 
+void wildcard_inside_arrays() {
+  // selects all numbers inside phonenumbers
+  std::cout << "Result for $.phoneNumbers[*].numbers[*]" << "\n";
+  auto result = parsed_json.at_path_with_wildcard("$.phoneNumbers[*].numbers[*]");
+
+  std::vector<simdjson::dom::element> values = result.value();
+  print_result(values);
+}
+
+void wilcard_inside_arrays_at_an_index() {
+  // selects an element at an index from wildcard result
+  std::cout << "Result for $.phoneNumbers[*].numbers[1]" << "\n";
+  auto result = parsed_json.at_path_with_wildcard("$.phoneNumbers[*].numbers[1]");
+
+  std::vector<simdjson::dom::element> values = result.value();
+  print_result(values);
+}
+
+void wildcard_in_empty_object() {
+  // selects wildcard in empty object
+  std::cout << "Result for $.empty_object.*" << "\n";
+  auto result = parsed_json.at_path_with_wildcard("$.empty_object.*");
+
+  std::vector<simdjson::dom::element> values = result.value();
+  print_result(values);
+}
+
+void wildcard_in_empty_array() {
+  // selects wildcard in empty object
+  std::cout << "Result for $.empty_array.*" << "\n";
+  auto result = parsed_json.at_path_with_wildcard("$.empty_array.*");
+
+  std::vector<simdjson::dom::element> values = result.value();
+  print_result(values);
+}
+
+void wildcard_in_empty_nested_array() {
+  // selects wildcard in empty nested object
+  std::cout << "Result for $.phoneNumbers.*.numbers[3]" << "\n";
+  auto result = parsed_json.at_path_with_wildcard("$.phoneNumbers.*.numbers[3]");
+
+  std::vector<simdjson::dom::element> values = result.value();
+  print_result(values);
+}
+
 int main(int argc, char **argv) {
   wildcard_dot_top_level_elements();
   wildcard_bracket_top_level_elements();
@@ -130,5 +182,10 @@ int main(int argc, char **argv) {
   wildcard_dot_element_properties_phoneNumbers();
   wildcard_bracket_element_nested_properties_streetAddress();
   wildcard_firstName();
+  wildcard_inside_arrays();
+  wilcard_inside_arrays_at_an_index();
+  wildcard_in_empty_object();
+  wildcard_in_empty_array();
+  wildcard_in_empty_nested_array();
   return 0;
 }
