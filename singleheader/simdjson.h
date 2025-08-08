@@ -6826,10 +6826,11 @@ inline std::string json_path_to_pointer_conversion(std::string_view json_path) {
   size_t i = 0;
 
   // if JSONPath starts with $, skip it
+   // json_path.starts_with('$') requires C++20.
   if (!json_path.empty() && json_path.front() == '$') {
     i = 1;
   }
-  if (json_path.empty() || (json_path[i] != '.' &&
+  if (i >= json_path.size() || (json_path[i] != '.' &&
       json_path[i] != '[')) {
     return "-1"; // This is just a sentinel value, the caller should check for this and return an error.
   }
