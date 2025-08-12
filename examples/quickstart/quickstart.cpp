@@ -1,7 +1,5 @@
+#include <iostream>
 #include "simdjson.h"
-#include <benchmark/benchmark.h>
-#include <chrono>
-#include <ratio>
 
 simdjson::padded_string json_string = R"(
   {
