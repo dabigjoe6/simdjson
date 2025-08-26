@@ -204,6 +204,39 @@ simdjson_warn_unused simdjson_inline simdjson_result<bool> value_iterator::find_
   return false;
 }
 
+simdjson_inline simdjson_result<bool> value_iterator::get_values(std::vector<value_iterator>& out) noexcept {
+  error_code error;
+  // lets assume we are at the start of the object
+  // TODO: We can  use value_iterator::move_at_container_start() or start_object() or start_array() if we are not at the beginning of the object
+
+  bool has_value = true;
+
+  while (has_value) {
+    raw_json_string actual_key;
+    if ((error = field_key().get(actual_key))) { abandon(); return error; };
+
+    // will increment depth by 1
+    if ((error = field_value() )) { abandon(); return error; }
+
+    out.emplace_back(child());
+
+    SIMDJSON_TRY( skip_child() );
+    if ((error = has_next_field().get(has_value) )) { abandon(); return error; }
+  }
+
+  SIMDJSON_TRY(reset_object().get(has_value));
+  raw_json_string actual_key;
+  if ((error = field_key().get(actual_key))) { abandon(); return error; };
+
+  if ((error = field_value() )) { abandon(); return error; }
+
+  // if (out.size() > 0) {
+  //   _json_iter->reenter_child(out[0].start_position(), out[0].depth());
+  // }
+
+  return true;
+}
+
 SIMDJSON_PUSH_DISABLE_WARNINGS
 SIMDJSON_DISABLE_STRICT_OVERFLOW_WARNING
 simdjson_warn_unused simdjson_inline simdjson_result<bool> value_iterator::find_field_unordered_raw(const std::string_view key) noexcept {

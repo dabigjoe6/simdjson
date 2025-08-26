@@ -7,6 +7,8 @@
 #include "simdjson/generic/ondemand/value_iterator.h"
 #endif // SIMDJSON_CONDITIONAL_INCLUDE
 
+#include <vector>
+
 namespace simdjson {
 namespace SIMDJSON_IMPLEMENTATION {
 namespace ondemand {
@@ -64,6 +66,8 @@ public:
   simdjson_inline simdjson_result<value> find_field(std::string_view key) & noexcept;
   /** @overload simdjson_inline simdjson_result<value> find_field(std::string_view key) & noexcept; */
   simdjson_inline simdjson_result<value> find_field(std::string_view key) && noexcept;
+
+  simdjson_inline void get_values(std::vector<object>& out) noexcept;
 
   /**
    * Look up a field by name on an object, without regard to key order.
@@ -157,6 +161,8 @@ public:
    */
   inline simdjson_result<value> at_path(std::string_view json_path) noexcept;
 
+  inline simdjson_result<std::vector<value>> at_path_with_wildcard(std::string_view json_path) noexcept;
+
   /**
    * Reset the iterator so that we are pointing back at the
    * beginning of the object. You should still consume values only once even if you
@@ -239,12 +245,14 @@ public:
   simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::object_iterator> end() noexcept;
   simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> find_field(std::string_view key) & noexcept;
   simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> find_field(std::string_view key) && noexcept;
+  simdjson_inline void get_values(std::vector<SIMDJSON_IMPLEMENTATION::ondemand::object>& out) noexcept;
   simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> find_field_unordered(std::string_view key) & noexcept;
   simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> find_field_unordered(std::string_view key) && noexcept;
   simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> operator[](std::string_view key) & noexcept;
   simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> operator[](std::string_view key) && noexcept;
   simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> at_pointer(std::string_view json_pointer) noexcept;
   simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> at_path(std::string_view json_path) noexcept;
+  simdjson_inline simdjson_result<std::vector<SIMDJSON_IMPLEMENTATION::ondemand::value>> at_path_with_wildcard(std::string_view json_path) noexcept;
 
   inline simdjson_result<bool> reset() noexcept;
   inline simdjson_result<bool> is_empty() noexcept;

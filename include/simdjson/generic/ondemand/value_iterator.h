@@ -6,6 +6,8 @@
 #include "simdjson/generic/implementation_simdjson_result_base.h"
 #endif // SIMDJSON_CONDITIONAL_INCLUDE
 
+#include <vector>
+
 namespace simdjson {
 namespace SIMDJSON_IMPLEMENTATION {
 namespace ondemand {
@@ -197,6 +199,8 @@ public:
    * fail to match some keys with escapes (\u, \n, etc.).
    */
   simdjson_warn_unused simdjson_inline simdjson_result<bool> find_field_raw(const std::string_view key) noexcept;
+
+  simdjson_inline simdjson_result<bool> get_values(std::vector<value_iterator>& out) noexcept;
 
   /**
    * Find the field with the given key without regard to order, and *without* unescaping.

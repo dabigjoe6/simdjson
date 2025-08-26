@@ -48,6 +48,7 @@ simdjson_inline simdjson_result<value> object::find_field(const std::string_view
   }
   return value(iter.child());
 }
+
 simdjson_inline simdjson_result<value> object::find_field(const std::string_view key) && noexcept {
   bool has_value;
   SIMDJSON_TRY( iter.find_field_raw(key).get(has_value) );
@@ -56,6 +57,19 @@ simdjson_inline simdjson_result<value> object::find_field(const std::string_view
     return NO_SUCH_FIELD;
   }
   return value(iter.child());
+}
+
+simdjson_inline void object::get_values(std::vector<object>& out) noexcept {
+  std::vector<value_iterator> children = {};
+
+  iter.get_values(children);
+
+  std::vector<value_iterator>::iterator child_iter;
+
+  for (child_iter = children.begin(); child_iter != children.end(); ++child_iter) {
+    // TODO: Assuming all children are objects - to change later
+    out.emplace_back(object(*child_iter));
+  }
 }
 
 simdjson_inline simdjson_result<object> object::start(value_iterator &iter) noexcept {
@@ -172,6 +186,55 @@ inline simdjson_result<value> object::at_path(std::string_view json_path) noexce
   return at_pointer(json_pointer);
 }
 
+inline simdjson_result<std::vector<value>> object::at_path_with_wildcard(std::string_view json_path) noexcept {
+  size_t i = 0;
+  // if JSONPath starts with $, skip it
+  if (!json_path.empty() && json_path.starts_with('$')) {
+    i = 1;
+  }
+
+  if (json_path.empty() || (json_path[i] != '.' && json_path[i] != '[')) {
+    // expect json path to always start with $ but this isn't currently
+    // expected in jsonpathutil.h.
+    return INVALID_JSON_POINTER;
+  }
+
+  if (json_path.find("*") != std::string::npos) {
+
+    std::vector<object> child_values;
+
+    get_values(child_values);
+
+    std::vector<object>::iterator child_value_iter;
+
+    for (child_value_iter = child_values.begin(); child_value_iter != child_values.end(); ++child_value_iter) {
+      std::cout << "first value: " << *child_value_iter << "\n";
+    }
+
+    // if (
+    //     (json_path.compare(i, 3, "[*]") == 0 && json_path.size() == i + 3) ||
+    //     (json_path.compare(i, 2, ".*") == 0 && json_path.size() == i + 2)
+    // ) {
+    //   get_values(child_values);
+    // }
+
+  }
+  // } else {
+  //   auto at_path_result = this->at_path(json_path);
+  //   if (at_path_result.error()) {
+  //     return at_path_result.error();
+  //   }
+  //   std::vector<value> result{std::move(at_path_result.value())};
+  //   return result;
+  // }
+  auto at_path_result = this->at_path(json_path);
+  if (at_path_result.error()) {
+    return at_path_result.error();
+  }
+  std::vector<value> result{std::move(at_path_result.value())};
+  return result;
+}
+
 simdjson_inline simdjson_result<size_t> object::count_fields() & noexcept {
   size_t count{0};
   // Important: we do not consume any of the values.
@@ -250,6 +313,14 @@ simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> simdjs
     return error();
   }
   return first.at_path(json_path);
+}
+
+simdjson_inline simdjson_result<std::vector<SIMDJSON_IMPLEMENTATION::ondemand::value>> simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::object>::at_path_with_wildcard(
+    std::string_view json_path) noexcept {
+  if (error()) {
+    return error();
+  }
+  return first.at_path_with_wildcard(json_path);
 }
 
 inline simdjson_result<bool> simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::object>::reset() noexcept {
