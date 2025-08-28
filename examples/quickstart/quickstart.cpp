@@ -39,57 +39,58 @@
 //   })"_padded;
 
 
-// simdjson::padded_string json_string = R"(
-//   {
-//     "address"  : {
-//       "streetAddress": "naist street",
-//       "city"         : "Nara",
-//       "postalCode"   : "630-0192"
-//     }
-//   })"_padded;
-
 simdjson::padded_string json_string = R"(
   {
-    "test_nested_object"  : {
-      "nested_object_1": {
-        "nested_child_1_1": "nested_child_1_1_value",
-        "nested_child_1_2": "nested_child_1_2_value",
-      },
-      "nested_object_2": {
-        "nested_child_2_1": "nested_child_2_1_value",
-        "nested_child_2_2": "nested_child_2_2_value",
-      },
-      "nested_object_3": {
-        "nested_child_3_1": "nested_child_3_1_value",
-        "nested_child_3_2": "nested_child_3_2_value",
-      }
+    "address"  : {
+      "streetAddress": "naist street",
+      "city"         : "Nara",
+      "postalCode"   : "630-0192"
     }
   })"_padded;
+
+// simdjson::padded_string json_string = R"(
+//   {
+//     "test_nested_object"  : {
+//       "nested_object_1": {
+//         "nested_child_1_1": "nested_child_1_1_value",
+//         "nested_child_1_2": "nested_child_1_2_value",
+//       },
+//       "nested_object_2": {
+//         "nested_child_2_1": "nested_child_2_1_value",
+//         "nested_child_2_2": "nested_child_2_2_value",
+//       },
+//       "nested_object_3": {
+//         "nested_child_3_1": "nested_child_3_1_value",
+//         "nested_child_3_2": "nested_child_3_2_value",
+//       }
+//     }
+//   })"_padded;
 
 
 simdjson::ondemand::parser parser{};
 auto json_doc = parser.iterate(json_string);
+
+void print_result(std::vector<simdjson::ondemand::value> &values) {
+  std::cout << "[";
+  for (int i = 0; i < values.size(); ++i) {
+    std::cout << std::string(i == 0 ? "" : ",") + "\n\t";
+    std::cout << values[i];
+  }
+  std::cout << "\n]" << std::endl;;
+}
 
 int main(int argc, char **argv) {
   // auto result = json_doc.at_path("$.address.city");
   // auto result = json_doc.at_path("$.test_nested_object.nested_object_2");
   // std::cout << "At path: " << result << std::endl;
 
-  auto result = json_doc.at_path_with_wildcard("$.*");
+  auto result = json_doc.at_path_with_wildcard("$.*.streetAddress");
+  if (!result.error()) {
+    std::vector<simdjson::ondemand::value> values = result.value();
+    print_result(values);
+  }
 }
 
-// void print_result(std::vector<simdjson::dom::element> &values) {
-//   std::string string_result = "[";
-//   for (int i = 0; i < values.size(); ++i) {
-//     simdjson::internal::string_builder<> sb;
-//     sb.append(values[i]);
-//     string_result = string_result +=
-//         std::string(i == 0 ? "" : ",") + "\n\t" + std::string(sb.str());
-//   }
-//   string_result += "\n]";
-//   std::cout << string_result << std::endl;
-// }
-//
 // void wildcard_dot_top_level_elements() {
 //   // selects all the top level elements
 //

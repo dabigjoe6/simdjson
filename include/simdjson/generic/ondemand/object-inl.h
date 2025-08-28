@@ -59,7 +59,7 @@ simdjson_inline simdjson_result<value> object::find_field(const std::string_view
   return value(iter.child());
 }
 
-simdjson_inline void object::get_values(std::vector<object>& out) noexcept {
+simdjson_inline void object::get_values(std::vector<value>& out) noexcept {
   std::vector<value_iterator> children = {};
 
   iter.get_values(children);
@@ -68,7 +68,7 @@ simdjson_inline void object::get_values(std::vector<object>& out) noexcept {
 
   for (child_iter = children.begin(); child_iter != children.end(); ++child_iter) {
     // TODO: Assuming all children are objects - to change later
-    out.emplace_back(object(*child_iter));
+    out.emplace_back(value(*child_iter));
   }
 }
 
@@ -186,6 +186,27 @@ inline simdjson_result<value> object::at_path(std::string_view json_path) noexce
   return at_pointer(json_pointer);
 }
 
+inline void object::process_json_path_of_child_elements(std::vector<value>::iterator& current, std::vector<value>::iterator& end, const std::string_view& path_suffix, std::vector<value>& accumulator) const noexcept {
+  if (current == end) {
+    return;
+  }
+
+  simdjson_result<std::vector<value>> result;
+
+  for (auto it = current; it != end; ++it) {
+    result = it->at_path_with_wildcard(path_suffix);
+
+    if (!result.error()) {
+      std::vector<value> child_result = result.value();
+
+      accumulator.reserve(accumulator.size() + child_result.size());
+      accumulator.insert(accumulator.end(),
+                         std::make_move_iterator(child_result.begin()),
+                         std::make_move_iterator(child_result.end()));
+    }
+  }
+}
+
 inline simdjson_result<std::vector<value>> object::at_path_with_wildcard(std::string_view json_path) noexcept {
   size_t i = 0;
   // if JSONPath starts with $, skip it
@@ -201,38 +222,53 @@ inline simdjson_result<std::vector<value>> object::at_path_with_wildcard(std::st
 
   if (json_path.find("*") != std::string::npos) {
 
-    std::vector<object> child_values;
+    std::vector<value> child_values;
 
-    get_values(child_values);
-
-    std::vector<object>::iterator child_value_iter;
-
-    for (child_value_iter = child_values.begin(); child_value_iter != child_values.end(); ++child_value_iter) {
-      std::cout << "first value: " << *child_value_iter << "\n";
+    if (
+      (json_path.compare(i, 3, "[*]") == 0 && json_path.size() == i + 3) ||
+      (json_path.compare(i, 2, ".*") == 0 && json_path.size() == i + 2)
+    ) {
+      get_values(child_values);
+      return child_values;
     }
 
-    // if (
-    //     (json_path.compare(i, 3, "[*]") == 0 && json_path.size() == i + 3) ||
-    //     (json_path.compare(i, 2, ".*") == 0 && json_path.size() == i + 2)
-    // ) {
-    //   get_values(child_values);
-    // }
+    std::pair<std::string_view, std::string_view> key_and_json_path = get_next_key_and_json_path(json_path);
 
+    std::string_view key = key_and_json_path.first;
+    json_path = key_and_json_path.second;
+
+    if (key.size() > 0) {
+      if (key == "*") {
+        get_values(child_values);
+      } else {
+        auto pointer_result = at_pointer("/" + std::string(key));
+
+        if (!pointer_result.error()) {
+          child_values.emplace_back(pointer_result.value());
+        }
+      }
+
+      std::vector<value> result = {};
+
+      if (child_values.size() > 0) {
+        std::vector<value>::iterator child_values_begin = child_values.begin();
+        std::vector<value>::iterator child_values_end = child_values.end();
+
+        process_json_path_of_child_elements(child_values_begin, child_values_end, json_path, result);
+      }
+
+      return result;
+    } else {
+      return INVALID_JSON_POINTER;
+    }
+  } else {
+    auto at_path_result = this->at_path(json_path);
+    if (at_path_result.error()) {
+      return at_path_result.error();
+    }
+    std::vector<value> result{std::move(at_path_result.value())};
+    return result;
   }
-  // } else {
-  //   auto at_path_result = this->at_path(json_path);
-  //   if (at_path_result.error()) {
-  //     return at_path_result.error();
-  //   }
-  //   std::vector<value> result{std::move(at_path_result.value())};
-  //   return result;
-  // }
-  auto at_path_result = this->at_path(json_path);
-  if (at_path_result.error()) {
-    return at_path_result.error();
-  }
-  std::vector<value> result{std::move(at_path_result.value())};
-  return result;
 }
 
 simdjson_inline simdjson_result<size_t> object::count_fields() & noexcept {

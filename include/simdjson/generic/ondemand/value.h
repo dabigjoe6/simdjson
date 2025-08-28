@@ -10,6 +10,8 @@
 
 #include <type_traits>
 
+#include <vector>
+
 namespace simdjson {
 
 namespace SIMDJSON_IMPLEMENTATION {
@@ -648,6 +650,8 @@ public:
    */
   simdjson_inline simdjson_result<value> at_path(std::string_view at_path) noexcept;
 
+  simdjson_inline simdjson_result<std::vector<value>> at_path_with_wildcard(std::string_view at_path) noexcept;
+
 
 protected:
   /**
@@ -820,6 +824,7 @@ public:
   simdjson_inline simdjson_result<int32_t> current_depth() const noexcept;
   simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> at_pointer(std::string_view json_pointer) noexcept;
   simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> at_path(std::string_view json_path) noexcept;
+  simdjson_inline simdjson_result<std::vector<SIMDJSON_IMPLEMENTATION::ondemand::value>> at_path_with_wildcard(std::string_view json_path) noexcept;
 };
 
 } // namespace simdjson
