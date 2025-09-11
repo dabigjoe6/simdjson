@@ -925,6 +925,12 @@ simdjson_inline void value_iterator::advance_scalar(const char *type) noexcept {
 }
 
 simdjson_inline error_code value_iterator::start_container(uint8_t start_char, const char *incorrect_type_message, const char *type) noexcept {
+  if (*json_iter().peek() == ',') {
+    json_iter().return_current_and_advance();
+    if (*json_iter().peek() == '{') {
+      _json_iter->_depth = _depth;
+    };
+  }
   logger::log_start_value(*_json_iter, start_position(), depth(), type);
   // If we're not at the position anymore, we don't want to advance the cursor.
   const uint8_t *json;

@@ -260,6 +260,7 @@ public:
   simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> operator[](std::string_view key) && noexcept;
   simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> at_pointer(std::string_view json_pointer) noexcept;
   simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> at_path(std::string_view json_path) noexcept;
+  simdjson_inline void process_json_path_of_child_elements(std::vector<SIMDJSON_IMPLEMENTATION::ondemand::value>::iterator& current, std::vector<SIMDJSON_IMPLEMENTATION::ondemand::value>::iterator& end, const std::string_view& path_suffix, std::vector<SIMDJSON_IMPLEMENTATION::ondemand::value>& accumulator) const noexcept;
   simdjson_inline simdjson_result<std::vector<SIMDJSON_IMPLEMENTATION::ondemand::value>> at_path_with_wildcard(std::string_view json_path) noexcept;
 
   inline simdjson_result<bool> reset() noexcept;

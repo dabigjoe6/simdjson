@@ -67,7 +67,6 @@ simdjson_inline void object::get_values(std::vector<value>& out) noexcept {
   std::vector<value_iterator>::iterator child_iter;
 
   for (child_iter = children.begin(); child_iter != children.end(); ++child_iter) {
-    // TODO: Assuming all children are objects - to change later
     out.emplace_back(value(*child_iter));
   }
 }

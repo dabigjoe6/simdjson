@@ -356,8 +356,8 @@ simdjson_inline simdjson_result<std::vector<value>> document::at_path_with_wildc
   json_type t;
   SIMDJSON_TRY(type().get(t));
   switch (t) {
-  // case json_type::array:
-  //     return (*this).get_array().at_path_with_wildcard(json_path);
+  case json_type::array:
+      return (*this).get_array().at_path_with_wildcard(json_path);
   case json_type::object:
       return (*this).get_object().at_path_with_wildcard(json_path);
   default:
