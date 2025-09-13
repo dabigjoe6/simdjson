@@ -7,6 +7,8 @@
 #include "simdjson/generic/ondemand/value_iterator.h"
 #endif // SIMDJSON_CONDITIONAL_INCLUDE
 
+#include <vector>
+
 namespace simdjson {
 namespace SIMDJSON_IMPLEMENTATION {
 namespace ondemand {
@@ -118,6 +120,13 @@ public:
   inline simdjson_result<value> at_path(std::string_view json_path) noexcept;
 
   /**
+   * Recursive function which processes the json path of each child element
+  */
+  inline void process_json_path_of_child_elements(std::vector<value>::iterator& current, std::vector<value>::iterator& end, const std::string_view& path_suffix, std::vector<value>& accumulator) const noexcept;
+
+  inline simdjson_result<std::vector<value>> at_path_with_wildcard(std::string_view json_path) noexcept;
+
+  /**
    * Consumes the array and returns a string_view instance corresponding to the
    * array as represented in JSON. It points inside the original document.
    */
@@ -131,6 +140,8 @@ public:
    *         - INDEX_OUT_OF_BOUNDS if the array index is larger than an array length
    */
   simdjson_inline simdjson_result<value> at(size_t index) noexcept;
+
+  simdjson_inline std::vector<value>& get_values(std::vector<value>& out) noexcept;
 protected:
   /**
    * Go to the end of the array, no matter where you are right now.
@@ -206,8 +217,11 @@ public:
   inline simdjson_result<bool> is_empty() & noexcept;
   inline simdjson_result<bool> reset() & noexcept;
   simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> at(size_t index) noexcept;
+  simdjson_inline std::vector<SIMDJSON_IMPLEMENTATION::ondemand::value>& get_values(std::vector<SIMDJSON_IMPLEMENTATION::ondemand::value>& out) noexcept;
   simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> at_pointer(std::string_view json_pointer) noexcept;
   simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> at_path(std::string_view json_path) noexcept;
+  simdjson_inline void process_json_path_of_child_elements(std::vector<SIMDJSON_IMPLEMENTATION::ondemand::value>::iterator& current, std::vector<SIMDJSON_IMPLEMENTATION::ondemand::value>::iterator& end, const std::string_view& path_suffix, std::vector<SIMDJSON_IMPLEMENTATION::ondemand::value>& accumulator) const noexcept;
+  simdjson_inline simdjson_result<std::vector<SIMDJSON_IMPLEMENTATION::ondemand::value>> at_path_with_wildcard(std::string_view json_path) noexcept;
   simdjson_inline simdjson_result<std::string_view> raw_json() noexcept;
 
 };

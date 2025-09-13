@@ -6,6 +6,8 @@
 #include "simdjson/generic/implementation_simdjson_result_base.h"
 #endif // SIMDJSON_CONDITIONAL_INCLUDE
 
+#include <vector>
+
 namespace simdjson {
 namespace SIMDJSON_IMPLEMENTATION {
 namespace ondemand {
@@ -198,6 +200,8 @@ public:
    */
   simdjson_warn_unused simdjson_inline simdjson_result<bool> find_field_raw(const std::string_view key) noexcept;
 
+  simdjson_inline simdjson_result<bool> get_values(std::vector<value_iterator>& out) noexcept;
+
   /**
    * Find the field with the given key without regard to order, and *without* unescaping.
    *
@@ -367,6 +371,7 @@ protected:
    * Usage: used with reset_array() and reset_object().
    **/
    simdjson_inline void move_at_container_start() noexcept;
+   simdjson_inline void move_at_child_position(token_position position) const noexcept;
   /* Useful for debugging and logging purposes. */
   inline std::string to_string() const noexcept;
   simdjson_inline value_iterator(json_iterator *json_iter, depth_t depth, token_position start_index) noexcept;

@@ -170,6 +170,86 @@ inline simdjson_result<value> array::at_path(std::string_view json_path) noexcep
   return at_pointer(json_pointer);
 }
 
+inline void array::process_json_path_of_child_elements(std::vector<value>::iterator& current, std::vector<value>::iterator& end, const std::string_view& path_suffix, std::vector<value>& accumulator) const noexcept {
+  if (current == end) {
+    return;
+  }
+
+  simdjson_result<std::vector<value>> result;
+
+
+  for (auto it = current; it != end; ++it) {
+    iter.move_at_child_position(it->start_position());
+    result = it->at_path_with_wildcard(path_suffix);
+
+    if (!result.error()) {
+      std::vector<value> child_result = result.value();
+
+      accumulator.reserve(accumulator.size() + child_result.size());
+      accumulator.insert(accumulator.end(),
+                         std::make_move_iterator(child_result.begin()),
+                         std::make_move_iterator(child_result.end()));
+    }
+  }
+}
+
+inline simdjson_result<std::vector<value>> array::at_path_with_wildcard(std::string_view json_path) noexcept {
+  size_t i = 0;
+
+  if (!json_path.empty() && json_path.starts_with('$')) {
+    i = 1;
+  }
+
+  if (json_path.find('*') != std::string::npos) {
+    std::vector<value> child_values;
+
+    if (
+      (json_path.compare(i, 3, "[*]") == 0 && json_path.size() == i + 3) ||
+      (json_path.compare(i, 2, ".*") == 0 && json_path.size() == i + 2)
+    ) {
+      get_values(child_values);
+      return child_values;
+    }
+
+    std::pair<std::string_view, std::string_view> key_and_json_path = get_next_key_and_json_path(json_path);
+    //
+    std::string_view key = key_and_json_path.first;
+    json_path = key_and_json_path.second;
+
+    if (key.size() > 0) {
+      if (key == "*") {
+        get_values(child_values);
+      } else {
+        auto pointer_result = at_pointer("/" + std::string(key));
+
+        if (!pointer_result.error()) {
+          child_values.emplace_back(pointer_result.value());
+        }
+      }
+
+       std::vector<value> result = {};
+
+      if (child_values.size() > 0) {
+        std::vector<value>::iterator child_values_begin = child_values.begin();
+        std::vector<value>::iterator child_values_end = child_values.end();
+
+        process_json_path_of_child_elements(child_values_begin, child_values_end, json_path, result);
+      }
+
+       return result;
+    } else {
+       return INVALID_JSON_POINTER;
+    }
+  } else {
+    auto result = at_path(json_path);
+    if (result.error()) {
+      return result.error();
+    }
+
+    return std::vector{std::move(result.value())};
+  }
+}
+
 simdjson_inline simdjson_result<value> array::at(size_t index) noexcept {
   size_t i = 0;
   for (auto value : *this) {
@@ -177,6 +257,24 @@ simdjson_inline simdjson_result<value> array::at(size_t index) noexcept {
     i++;
   }
   return INDEX_OUT_OF_BOUNDS;
+}
+
+simdjson_inline std::vector<value>& array::get_values(std::vector<value>& out) noexcept {
+  // TODO: reserve array size
+  // size_t array_size;
+  //
+  // auto result = count_elements();
+  //
+  // array_size = result.value();
+  //
+  // out.reserve(array_size);
+  for (value _value : *this) {
+    out.emplace_back(_value);
+  }
+
+  iter.reset_array();
+
+  return out;
 }
 
 } // namespace ondemand
@@ -227,6 +325,13 @@ simdjson_inline  simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> simdj
 simdjson_inline  simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::array>::at_path(std::string_view json_path) noexcept {
   if (error()) { return error(); }
   return first.at_path(json_path);
+}
+simdjson_inline  simdjson_result<std::vector<SIMDJSON_IMPLEMENTATION::ondemand::value>> simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::array>::at_path_with_wildcard(std::string_view json_path) noexcept {
+  if (error()) { return error(); }
+  return first.at_path_with_wildcard(json_path);
+}
+simdjson_inline std::vector<SIMDJSON_IMPLEMENTATION::ondemand::value>& simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::array>::get_values(std::vector<SIMDJSON_IMPLEMENTATION::ondemand::value>& out) noexcept {
+  return first.get_values(out);
 }
 simdjson_inline  simdjson_result<std::string_view> simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::array>::raw_json() noexcept {
   if (error()) { return error(); }

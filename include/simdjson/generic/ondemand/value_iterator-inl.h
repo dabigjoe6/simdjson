@@ -204,6 +204,39 @@ simdjson_warn_unused simdjson_inline simdjson_result<bool> value_iterator::find_
   return false;
 }
 
+simdjson_inline simdjson_result<bool> value_iterator::get_values(std::vector<value_iterator>& out) noexcept {
+  error_code error;
+  // lets assume we are at the start of the object
+  // TODO: We can  use value_iterator::move_at_container_start() or start_object() or start_array() if we are not at the beginning of the object
+
+  bool has_value = true;
+
+  while (has_value) {
+    raw_json_string actual_key;
+    if ((error = field_key().get(actual_key))) { abandon(); return error; };
+
+    // will increment depth by 1
+    if ((error = field_value() )) { abandon(); return error; }
+
+    out.emplace_back(child());
+
+    SIMDJSON_TRY( skip_child() );
+    if ((error = has_next_field().get(has_value) )) { abandon(); return error; }
+  }
+
+  SIMDJSON_TRY(reset_object().get(has_value));
+  raw_json_string actual_key;
+  if ((error = field_key().get(actual_key))) { abandon(); return error; };
+
+  if ((error = field_value() )) { abandon(); return error; }
+
+  // if (out.size() > 0) {
+  //   _json_iter->reenter_child(out[0].start_position(), out[0].depth());
+  // }
+
+  return true;
+}
+
 SIMDJSON_PUSH_DISABLE_WARNINGS
 SIMDJSON_DISABLE_STRICT_OVERFLOW_WARNING
 simdjson_warn_unused simdjson_inline simdjson_result<bool> value_iterator::find_field_unordered_raw(const std::string_view key) noexcept {
@@ -892,6 +925,12 @@ simdjson_inline void value_iterator::advance_scalar(const char *type) noexcept {
 }
 
 simdjson_inline error_code value_iterator::start_container(uint8_t start_char, const char *incorrect_type_message, const char *type) noexcept {
+  if (*json_iter().peek() == ',') {
+    json_iter().return_current_and_advance();
+    if (*json_iter().peek() == '{') {
+      _json_iter->_depth = _depth;
+    };
+  }
   logger::log_start_value(*_json_iter, start_position(), depth(), type);
   // If we're not at the position anymore, we don't want to advance the cursor.
   const uint8_t *json;
@@ -998,6 +1037,12 @@ simdjson_inline void value_iterator::move_at_start() noexcept {
 simdjson_inline void value_iterator::move_at_container_start() noexcept {
   _json_iter->_depth = _depth;
   _json_iter->token.set_position(_start_position + 1);
+}
+
+simdjson_inline void value_iterator::move_at_child_position(token_position position) const noexcept {
+  // assert_at_child();
+  _json_iter->_depth = _depth + 1;
+  _json_iter->token.set_position(position);
 }
 
 simdjson_inline simdjson_result<bool> value_iterator::reset_array() noexcept {
