@@ -652,6 +652,8 @@ public:
 
   simdjson_inline simdjson_result<std::vector<value>> at_path_with_wildcard(std::string_view at_path) noexcept;
 
+  simdjson_inline simdjson_result<token_position> start_position() noexcept;
+
 
 protected:
   /**
@@ -820,6 +822,7 @@ public:
 
   /** @copydoc simdjson_inline simdjson_result<const char *> current_location() noexcept */
   simdjson_inline simdjson_result<const char *> current_location() noexcept;
+  simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::token_position> start_position() noexcept;
   /** @copydoc simdjson_inline int32_t current_depth() const noexcept */
   simdjson_inline simdjson_result<int32_t> current_depth() const noexcept;
   simdjson_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> at_pointer(std::string_view json_pointer) noexcept;

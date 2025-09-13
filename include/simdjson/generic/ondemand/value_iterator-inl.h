@@ -1039,6 +1039,12 @@ simdjson_inline void value_iterator::move_at_container_start() noexcept {
   _json_iter->token.set_position(_start_position + 1);
 }
 
+simdjson_inline void value_iterator::move_at_child_position(token_position position) const noexcept {
+  // assert_at_child();
+  _json_iter->_depth = _depth + 1;
+  _json_iter->token.set_position(position);
+}
+
 simdjson_inline simdjson_result<bool> value_iterator::reset_array() noexcept {
   if(error()) { return error(); }
   move_at_container_start();

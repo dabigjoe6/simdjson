@@ -179,6 +179,7 @@ inline void array::process_json_path_of_child_elements(std::vector<value>::itera
 
 
   for (auto it = current; it != end; ++it) {
+    iter.move_at_child_position(it->start_position());
     result = it->at_path_with_wildcard(path_suffix);
 
     if (!result.error()) {

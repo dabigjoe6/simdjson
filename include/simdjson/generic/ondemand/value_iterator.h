@@ -371,6 +371,7 @@ protected:
    * Usage: used with reset_array() and reset_object().
    **/
    simdjson_inline void move_at_container_start() noexcept;
+   simdjson_inline void move_at_child_position(token_position position) const noexcept;
   /* Useful for debugging and logging purposes. */
   inline std::string to_string() const noexcept;
   simdjson_inline value_iterator(json_iterator *json_iter, depth_t depth, token_position start_index) noexcept;

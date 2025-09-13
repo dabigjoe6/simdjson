@@ -241,6 +241,10 @@ simdjson_inline simdjson_result<const char *> value::current_location() noexcept
   return iter.json_iter().current_location();
 }
 
+simdjson_inline simdjson_result<token_position> value::start_position() noexcept {
+  return iter.start_position();
+}
+
 simdjson_inline int32_t value::current_depth() const noexcept{
   return iter.json_iter().depth();
 }
